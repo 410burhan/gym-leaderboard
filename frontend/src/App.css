@@ -1,0 +1,191 @@
+/* Design concept: a gym whiteboard where people chalk up their sets.
+   Dark concrete background, chalky off-white text, one hot accent (chalk-orange)
+   used sparingly for the thing that matters: your rank and your streak. */
+
+:root {
+  --concrete: #1c1b19;
+  --concrete-light: #262421;
+  --chalk: #eae6dd;
+  --chalk-dim: #a39d8f;
+  --accent: #ff7a3d;
+  --line: #3a372f;
+  --danger: #ff6b6b;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--concrete);
+  color: var(--chalk);
+  font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.25rem;
+}
+
+h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+  color: var(--chalk-dim);
+}
+
+.page {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.subtitle {
+  color: var(--chalk-dim);
+  margin: 0 0 2rem;
+}
+
+/* --- Auth screen --- */
+
+.auth-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 360px;
+}
+
+/* --- Forms --- */
+
+form { display: flex; flex-direction: column; gap: 1rem; }
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  color: var(--chalk-dim);
+}
+
+input, select {
+  background: var(--concrete-light);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  color: var(--chalk);
+  font-size: 1rem;
+}
+
+input:focus, select:focus, button:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+button {
+  background: var(--accent);
+  color: #1c1000;
+  border: none;
+  border-radius: 6px;
+  padding: 0.7rem 1rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+button:disabled { opacity: 0.6; cursor: default; }
+
+.link-button {
+  background: none;
+  color: var(--chalk-dim);
+  text-decoration: underline;
+  padding: 0;
+  font-weight: 400;
+}
+
+.error-text { color: var(--danger); font-size: 0.9rem; }
+.notice-text { color: var(--chalk-dim); font-size: 0.9rem; }
+.empty-text { color: var(--chalk-dim); }
+
+/* --- Groups list --- */
+
+.group-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.group-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--concrete-light);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+  text-decoration: none;
+  color: var(--chalk);
+}
+
+.group-name { font-weight: 700; }
+.invite-code { color: var(--accent); font-variant-numeric: tabular-nums; font-size: 0.9rem; }
+
+.forms-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 520px) {
+  .forms-row { grid-template-columns: 1fr; }
+}
+
+.panel {
+  background: var(--concrete-light);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+/* --- Leaderboard --- */
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 2rem;
+}
+
+.leaderboard-table th {
+  text-align: left;
+  color: var(--chalk-dim);
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.leaderboard-table td {
+  padding: 0.7rem 0.6rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.leaderboard-table tr:first-child td { color: var(--accent); font-weight: 700; }
+
+.log-form { max-width: 340px; }
