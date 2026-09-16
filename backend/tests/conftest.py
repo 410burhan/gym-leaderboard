@@ -1,7 +1,9 @@
 import os
 
 os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
-os.environ.setdefault("SUPABASE_JWT_SECRET", "test-secret")
+# Tests override get_current_user entirely (see below), so this never needs
+# to resolve to a real project - it just has to satisfy Settings' validation.
+os.environ.setdefault("SUPABASE_URL", "https://test-project.supabase.co")
 
 import pytest
 from fastapi import Request

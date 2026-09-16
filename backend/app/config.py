@@ -2,10 +2,9 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    # Supabase gives you these from Project Settings -> API
-    database_url: str  # Project Settings -> Database -> Connection string (URI, use "Transaction" pooler)
-    supabase_jwt_secret: str  # Project Settings -> API -> JWT Settings -> JWT Secret
-    supabase_url: str = ""  # not required by backend, but handy to keep alongside
+    # Both come from your Supabase project.
+    database_url: str  # "Connect" button (top of dashboard) -> Connection String -> Session pooler
+    supabase_url: str  # Project Settings -> API -> Project URL. Used to verify JWTs via Supabase's JWKS endpoint.
     cors_origins: str = "http://localhost:5173"
 
     class Config:
