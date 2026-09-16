@@ -28,8 +28,8 @@ jobs:
       - name: Run tests
         run: pytest -v
         env:
-          DATABASE_URL: sqlite:///:memory:
-          SUPABASE_JWT_SECRET: test-secret
+          DATABASE_URL: "sqlite:///:memory:"
+          SUPABASE_URL: "https://test-project.supabase.co"
 
   build-images:
     needs: backend-tests
