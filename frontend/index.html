@@ -2,8 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gym Leaderboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#1c1b19" />
+
+    <!-- iOS-specific: Safari does not read display/theme from the web
+         manifest for these behaviors, so they need explicit meta tags. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Set Together" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <title>Set Together</title>
   </head>
   <body>
     <div id="root"></div>

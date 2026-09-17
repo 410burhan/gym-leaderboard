@@ -38,7 +38,7 @@ export default function NewPost() {
   }
 
   return (
-    <div className="page">
+    <div>
       <h1>Post a PR</h1>
       <p className="subtitle">Share a video, let people cheer you on.</p>
 

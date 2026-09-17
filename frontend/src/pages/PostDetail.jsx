@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { ChevronLeft } from "lucide-react";
 import { api } from "../lib/api";
 import { useProfile } from "../lib/ProfileContext";
 import PostCard from "../components/PostCard";
+import Avatar from "../components/Avatar";
 
 export default function PostDetail() {
   const { postId } = useParams();
@@ -56,17 +58,17 @@ export default function PostDetail() {
     navigate("/posts");
   }
 
-  if (loading) return <div className="page">Loading...</div>;
-  if (error) return <div className="page"><p className="error-text">{error}</p></div>;
+  if (loading) return <p className="empty-text">Loading...</p>;
+  if (error) return <p className="error-text">{error}</p>;
   if (!post) return null;
 
   const isOwnPost = profile && profile.username === post.username;
 
   return (
-    <div className="page">
-      <header className="page-header">
-        <Link to="/posts" className="link-button">&larr; PRs</Link>
-      </header>
+    <div>
+      <button className="back-button" onClick={() => navigate(-1)}>
+        <ChevronLeft size={20} /> Back
+      </button>
 
       <PostCard post={post} />
 
@@ -76,7 +78,7 @@ export default function PostDetail() {
         </button>
       )}
 
-      <h2 className="feed-heading">Comments</h2>
+      <h2 className="section-heading">Comments</h2>
 
       <form onSubmit={handleComment} className="comment-form">
         <input
@@ -95,8 +97,13 @@ export default function PostDetail() {
         <ul className="comment-list">
           {comments.map((c) => (
             <li key={c.id} className="comment-item">
-              <Link to={`/u/${c.username}`} className="comment-author">{c.display_name}</Link>
-              <span className="comment-body">{c.body}</span>
+              <Link to={`/u/${c.username}`}>
+                <Avatar name={c.display_name} url={c.avatar_url} size={30} />
+              </Link>
+              <div>
+                <Link to={`/u/${c.username}`} className="comment-author">{c.display_name}</Link>{" "}
+                <span className="comment-body">{c.body}</span>
+              </div>
             </li>
           ))}
         </ul>

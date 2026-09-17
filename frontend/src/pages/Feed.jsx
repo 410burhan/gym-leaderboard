@@ -1,23 +1,20 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { Check, X } from "lucide-react";
 import { api, BODY_PARTS } from "../lib/api";
-import { useProfile } from "../lib/ProfileContext";
-import { supabase } from "../lib/supabase";
+import Avatar from "../components/Avatar";
 
 export default function Feed() {
-  const { profile } = useProfile();
-  const navigate = useNavigate();
   const [feed, setFeed] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [bodyPart, setBodyPart] = useState(BODY_PARTS[0]);
+  // Picking a body part just stages it - nothing is logged until the
+  // person explicitly confirms, so a stray tap can't silently log a workout.
+  const [pendingPart, setPendingPart] = useState(null);
   const [duration, setDuration] = useState(45);
   const [busy, setBusy] = useState(false);
-
-  const [followTarget, setFollowTarget] = useState("");
-  const [followBusy, setFollowBusy] = useState(false);
-  const [followError, setFollowError] = useState("");
+  const [justLogged, setJustLogged] = useState(false);
 
   async function refresh() {
     setLoading(true);
@@ -34,13 +31,24 @@ export default function Feed() {
     refresh();
   }, []);
 
-  async function handleLog(e) {
-    e.preventDefault();
+  function selectPart(part) {
+    setPendingPart(part);
+    setJustLogged(false);
+  }
+
+  function cancelSelection() {
+    setPendingPart(null);
+  }
+
+  async function confirmLog() {
     setBusy(true);
     setError("");
     try {
-      await api.logWorkout({ body_part: bodyPart, duration_minutes: Number(duration) });
+      await api.logWorkout({ body_part: pendingPart, duration_minutes: Number(duration) });
       await refresh();
+      setJustLogged(true);
+      setPendingPart(null);
+      setTimeout(() => setJustLogged(false), 2500);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -48,92 +56,82 @@ export default function Feed() {
     }
   }
 
-  async function handleFollow(e) {
-    e.preventDefault();
-    setFollowBusy(true);
-    setFollowError("");
-    try {
-      const uname = followTarget.trim().toLowerCase();
-      await api.follow(uname);
-      setFollowTarget("");
-      navigate(`/u/${uname}`);
-    } catch (e) {
-      setFollowError(e.message);
-    } finally {
-      setFollowBusy(false);
-    }
-  }
-
   return (
-    <div className="page">
-      <header className="page-header">
-        <h1>Feed</h1>
-        <div className="header-links">
-          <Link to="/posts" className="link-button">PRs</Link>
-          {profile && (
-            <Link to={`/u/${profile.username}`} className="link-button">My profile</Link>
-          )}
-          <button className="link-button" onClick={() => supabase.auth.signOut()}>Sign out</button>
+    <div>
+      <section className="quick-log">
+        <div className="quick-log-head">
+          <h2>Log today's session</h2>
         </div>
-      </header>
 
-      <form onSubmit={handleFollow} className="panel follow-form">
-        <h2>Follow someone</h2>
-        <label>
-          Their username
-          <input
-            value={followTarget}
-            onChange={(e) => setFollowTarget(e.target.value)}
-            placeholder="e.g. friend123"
-            required
-          />
-        </label>
-        {followError && <p className="error-text">{followError}</p>}
-        <button type="submit" disabled={followBusy}>{followBusy ? "Following..." : "Follow"}</button>
-      </form>
+        <div className="chip-row">
+          {BODY_PARTS.map((part) => (
+            <button
+              key={part}
+              className={`chip${pendingPart === part ? " chip-active" : ""}`}
+              onClick={() => selectPart(part)}
+            >
+              {part}
+            </button>
+          ))}
+        </div>
 
-      <form onSubmit={handleLog} className="panel log-form">
-        <h2>Log a workout</h2>
-        <label>
-          Body part
-          <select value={bodyPart} onChange={(e) => setBodyPart(e.target.value)}>
-            {BODY_PARTS.map((b) => (
-              <option key={b} value={b}>{b}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Duration (minutes)
-          <input
-            type="number"
-            min={0}
-            max={600}
-            value={duration}
-            onChange={(e) => setDuration(e.target.value)}
-          />
-        </label>
-        <button type="submit" disabled={busy}>{busy ? "Logging..." : "Log it"}</button>
-      </form>
+        {pendingPart && (
+          <div className="log-confirm">
+            <label className="duration-row">
+              <span>Duration</span>
+              <input
+                type="range"
+                min={0}
+                max={120}
+                step={5}
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+              />
+              <span className="duration-value">{duration}m</span>
+            </label>
+
+            <p className="log-confirm-text">
+              Log <strong>{pendingPart}</strong> for {duration} minutes?
+            </p>
+
+            <div className="log-confirm-actions">
+              <button onClick={cancelSelection} disabled={busy} className="btn-secondary">
+                <X size={16} /> Cancel
+              </button>
+              <button onClick={confirmLog} disabled={busy}>
+                <Check size={16} /> {busy ? "Logging..." : "Confirm"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {justLogged && <p className="log-success">Logged \u2713</p>}
+      </section>
 
       {error && <p className="error-text">{error}</p>}
 
-      <h2 className="feed-heading">What your friends hit</h2>
+      <h2 className="section-heading">What your friends hit</h2>
 
       {loading ? (
-        <p>Loading...</p>
+        <p className="empty-text">Loading...</p>
       ) : feed.length === 0 ? (
         <p className="empty-text">
-          Nothing here yet - follow people to see what they're training. Search a username on their profile page.
+          Nothing here yet - use Search to find and follow people.
         </p>
       ) : (
         <ul className="feed-list">
           {feed.map((entry) => (
             <li key={entry.workout.id} className="feed-card">
-              <Link to={`/u/${entry.username}`} className="feed-name">{entry.display_name}</Link>
-              <span className="feed-detail">
-                hit <strong>{entry.workout.body_part}</strong>
-                {entry.workout.duration_minutes ? ` for ${entry.workout.duration_minutes} min` : ""}
-              </span>
+              <Link to={`/u/${entry.username}`}>
+                <Avatar name={entry.display_name} url={entry.avatar_url} size={38} />
+              </Link>
+              <div className="feed-card-body">
+                <Link to={`/u/${entry.username}`} className="feed-name">{entry.display_name}</Link>
+                <span className="feed-detail">
+                  hit <strong>{entry.workout.body_part}</strong>
+                  {entry.workout.duration_minutes ? ` \u00b7 ${entry.workout.duration_minutes}m` : ""}
+                </span>
+              </div>
               <span className="feed-date">{entry.workout.logged_on}</span>
             </li>
           ))}

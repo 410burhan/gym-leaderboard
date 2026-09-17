@@ -5,34 +5,42 @@ import { api } from "./api";
 const ProfileContext = createContext(null);
 
 export function ProfileProvider({ children }) {
-  const { session } = useAuth();
-  const [profile, setProfile] = useState(undefined); // undefined = loading, null = no profile yet
+  const { session, loading: authLoading } = useAuth();
+  const [profile, setProfile] = useState(undefined);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const refresh = useCallback(async () => {
+    if (authLoading) {
+      return;
+    }
     if (!session) {
       setProfile(null);
       setLoading(false);
       return;
     }
     setLoading(true);
+    setError(null);
     try {
       const p = await api.getMyProfile();
       setProfile(p);
-    } catch {
-      // 400 means "no profile yet" - that's an expected state, not an error to surface.
-      setProfile(null);
+    } catch (e) {
+      if (e.status === 400) {
+        setProfile(null);
+      } else {
+        setError(e.message || "Couldn't load your profile");
+      }
     } finally {
       setLoading(false);
     }
-  }, [session]);
+  }, [session, authLoading]);
 
   useEffect(() => {
     refresh();
   }, [refresh]);
 
   return (
-    <ProfileContext.Provider value={{ profile, loading, refresh }}>
+    <ProfileContext.Provider value={{ profile, loading, error, refresh }}>
       {children}
     </ProfileContext.Provider>
   );

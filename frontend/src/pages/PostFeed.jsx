@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import PostCard from "../components/PostCard";
 
@@ -16,19 +15,13 @@ export default function PostFeed() {
   }, []);
 
   return (
-    <div className="page">
-      <header className="page-header">
-        <h1>PRs</h1>
-        <div className="header-links">
-          <Link to="/posts/new" className="link-button">Post a PR</Link>
-          <Link to="/" className="link-button">Feed</Link>
-        </div>
-      </header>
+    <div>
+      <h2 className="section-heading" style={{ marginTop: 0 }}>PRs</h2>
 
       {error && <p className="error-text">{error}</p>}
 
       {loading ? (
-        <p>Loading...</p>
+        <p className="empty-text">Loading...</p>
       ) : posts.length === 0 ? (
         <p className="empty-text">No PRs yet from people you follow.</p>
       ) : (

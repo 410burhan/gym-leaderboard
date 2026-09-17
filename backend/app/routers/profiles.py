@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -20,6 +20,29 @@ def require_profile(db: Session, user_id: str) -> models.Profile:
             detail="Create a profile (choose a username) before doing this",
         )
     return profile
+
+
+@router.get("/search", response_model=list[schemas.ProfileOut])
+def search_profiles(
+    q: str = Query(default="", max_length=60),
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    """Find people to follow by username or display name. Excludes yourself -
+    you don't need to search for your own profile."""
+    query = db.query(models.Profile).filter(models.Profile.id != user.user_id)
+
+    q = q.strip()
+    if q:
+        pattern = f"%{q.lower()}%"
+        query = query.filter(
+            func.lower(models.Profile.username).like(pattern)
+            | func.lower(models.Profile.display_name).like(pattern)
+        )
+    else:
+        return []  # empty query - don't dump every user in the system
+
+    return query.order_by(models.Profile.username).limit(20).all()
 
 
 @router.post("", response_model=schemas.ProfileOut, status_code=status.HTTP_201_CREATED)

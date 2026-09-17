@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Heart, MessageCircle } from "lucide-react";
 import { api } from "../lib/api";
+import Avatar from "./Avatar";
 
 export default function PostCard({ post, showAuthor = true }) {
   const [liked, setLiked] = useState(post.liked_by_me);
@@ -20,7 +22,7 @@ export default function PostCard({ post, showAuthor = true }) {
         setLikeCount((c) => c + 1);
       }
     } catch {
-      // Leave optimistic-free: on error, state just stays as it was.
+      // state simply stays as it was if the request fails
     } finally {
       setBusy(false);
     }
@@ -30,21 +32,18 @@ export default function PostCard({ post, showAuthor = true }) {
     <div className="post-card">
       {showAuthor && (
         <Link to={`/u/${post.username}`} className="post-author">
-          {post.display_name}
+          <Avatar name={post.display_name} url={post.avatar_url} size={32} />
+          <span>{post.display_name}</span>
         </Link>
       )}
-      <video src={post.video_url} controls className="post-video" />
+      <video src={post.video_url} controls playsInline className="post-video" />
       {post.caption && <p className="post-caption">{post.caption}</p>}
       <div className="post-actions">
-        <button
-          onClick={toggleLike}
-          disabled={busy}
-          className={liked ? "like-btn liked" : "like-btn"}
-        >
-          {liked ? "\u2665" : "\u2661"} {likeCount}
+        <button onClick={toggleLike} disabled={busy} className={liked ? "like-btn liked" : "like-btn"}>
+          <Heart size={20} fill={liked ? "currentColor" : "none"} /> {likeCount}
         </button>
         <Link to={`/posts/${post.id}`} className="comment-link">
-          {post.comment_count} comment{post.comment_count === 1 ? "" : "s"}
+          <MessageCircle size={19} /> {post.comment_count}
         </Link>
       </div>
     </div>

@@ -19,7 +19,9 @@ async function request(path, options = {}) {
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.detail || `Request failed: ${res.status}`);
+    const err = new Error(body.detail || `Request failed: ${res.status}`);
+    err.status = res.status;
+    throw err;
   }
 
   if (res.status === 204) return null;
@@ -39,6 +41,7 @@ export const api = {
   updateMyProfile: (updates) =>
     request("/profiles/me", { method: "PATCH", body: JSON.stringify(updates) }),
   getProfile: (username) => request(`/profiles/${username}`),
+  searchProfiles: (q) => request(`/profiles/search?q=${encodeURIComponent(q)}`),
   getUserWorkouts: (username) => request(`/profiles/${username}/workouts`),
 
   // Follows

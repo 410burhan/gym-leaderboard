@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { api } from "../lib/api";
 import { useProfile } from "../lib/ProfileContext";
 import PostCard from "../components/PostCard";
+import Avatar from "../components/Avatar";
 
 export default function Profile() {
   const { username } = useParams();
@@ -56,45 +57,47 @@ export default function Profile() {
     }
   }
 
-  if (loading) return <div className="page">Loading...</div>;
-  if (error) return <div className="page"><p className="error-text">{error}</p></div>;
+  if (loading) return <p className="empty-text">Loading...</p>;
+  if (error) return <p className="error-text">{error}</p>;
   if (!profile) return null;
 
   return (
-    <div className="page">
-      <header className="page-header">
-        <Link to="/" className="link-button">&larr; Feed</Link>
-      </header>
-
+    <div>
       <div className="profile-header">
-        <div>
-          <h1>{profile.display_name}</h1>
-          <p className="subtitle">@{profile.username}</p>
-          {profile.bio && <p className="profile-bio">{profile.bio}</p>}
+        <Avatar name={profile.display_name} url={profile.avatar_url} size={72} />
+        <div className="profile-stats">
+          <div><strong>{profile.workout_count}</strong><span>workouts</span></div>
+          <div><strong>{profile.follower_count}</strong><span>followers</span></div>
+          <div><strong>{profile.following_count}</strong><span>following</span></div>
         </div>
-        {!isOwnProfile && (
-          <button onClick={toggleFollow} disabled={busy} className={profile.is_following ? "btn-secondary" : ""}>
-            {busy ? "..." : profile.is_following ? "Following" : "Follow"}
-          </button>
-        )}
       </div>
 
-      <div className="profile-stats">
-        <div><strong>{profile.workout_count}</strong><span>workouts</span></div>
-        <div><strong>{profile.follower_count}</strong><span>followers</span></div>
-        <div><strong>{profile.following_count}</strong><span>following</span></div>
+      <div className="profile-identity">
+        <h1>{profile.display_name}</h1>
+        <p className="subtitle">@{profile.username}</p>
+        {profile.bio && <p className="profile-bio">{profile.bio}</p>}
       </div>
 
-      <h2 className="feed-heading">Recent workouts</h2>
+      {!isOwnProfile && (
+        <button
+          onClick={toggleFollow}
+          disabled={busy}
+          className={profile.is_following ? "btn-secondary follow-btn-full" : "follow-btn-full"}
+        >
+          {busy ? "..." : profile.is_following ? "Following" : "Follow"}
+        </button>
+      )}
+
+      <h2 className="section-heading">Recent workouts</h2>
       {workouts.length === 0 ? (
         <p className="empty-text">No workouts logged yet.</p>
       ) : (
         <ul className="feed-list">
           {workouts.map((w) => (
-            <li key={w.id} className="feed-card">
+            <li key={w.id} className="feed-card feed-card-compact">
               <span className="feed-detail">
                 <strong>{w.body_part}</strong>
-                {w.duration_minutes ? ` for ${w.duration_minutes} min` : ""}
+                {w.duration_minutes ? ` \u00b7 ${w.duration_minutes}m` : ""}
               </span>
               <span className="feed-date">{w.logged_on}</span>
             </li>
@@ -102,7 +105,7 @@ export default function Profile() {
         </ul>
       )}
 
-      <h2 className="feed-heading">PRs</h2>
+      <h2 className="section-heading">PRs</h2>
       {posts.length === 0 ? (
         <p className="empty-text">No PRs posted yet.</p>
       ) : (
