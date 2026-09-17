@@ -1,0 +1,57 @@
+name: Deploy backend to ECS Express Mode
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/deploy.yml"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  test:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push backend image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: gym-backend
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./backend
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Deploy to ECS Express Mode
+        uses: aws-actions/amazon-ecs-deploy-express-service@v1
+        with:
+          service-name: gym-backend-service
+          image: ${{ steps.login-ecr.outputs.registry }}/gym-backend:${{ github.sha }}
+          execution-role-arn: ${{ secrets.ECS_EXECUTION_ROLE_ARN }}
+          infrastructure-role-arn: ${{ secrets.ECS_INFRASTRUCTURE_ROLE_ARN }}
+          container-port: 8000
+          health-check-path: /health
+          environment-variables: |
+            [
+              {"name": "DATABASE_URL", "value": "${{ secrets.DATABASE_URL }}"},
+              {"name": "SUPABASE_URL", "value": "${{ secrets.SUPABASE_URL }}"},
+              {"name": "CORS_ORIGINS", "value": "${{ secrets.CORS_ORIGINS }}"}
+            ]
